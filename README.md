@@ -46,3 +46,6 @@
  Run `sudo apt update`
 
  Copyright ©2023-2025 Startos Inc.
+
+
+`PYTHONPATH=src ave test-read -- python -m src.verinfast.agent --config ./config.yaml`
