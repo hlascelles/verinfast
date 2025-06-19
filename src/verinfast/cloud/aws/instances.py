@@ -143,12 +143,16 @@ def get_instances(
         return None
 
     if not dry:
-        right_session = boto3.Session(profile_name=profile)
+        print("Getting session...")
+        right_session = boto3.Session()
+        print("Got session...")
         my_instances = []
         metrics = []
         for region in regions:
             try:
+                print("Getting client..." + region)
                 client = right_session.client("ec2", region_name=region)
+                print("Got client...")
                 paginator = client.get_paginator("describe_instances")
                 page_iterator = paginator.paginate()
                 for page in page_iterator:

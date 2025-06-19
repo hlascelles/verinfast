@@ -174,3 +174,4 @@ results/**/*
 log.txt
 temp_repo
 VERSION
+/.idea

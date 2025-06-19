@@ -9,25 +9,27 @@ def get_aws_costs(
 ):
 
     def _get_costs_and_usage(profile: str, aws_output_file: str, next_token=None):
+        print("Running _get_costs_and_usage...")
         base_cmd = f"""
             aws ce get-cost-and-usage \
             --time-period Start={start},End={end} \
             --granularity=DAILY \
             --metrics "BlendedCost" \
             --group-by Type=DIMENSION,Key=SERVICE \
-            --profile="{profile}" \
             --output=json"""
 
-        cmd = f'{base_cmd} --next-token="{next_token}" | cat'
         if next_token:
-            cmd = f'{base_cmd} --next-token="{next_token}" | cat'
+            cmd = f'{base_cmd} --next-page-token="{next_token}" | cat'
         else:
             cmd = f"{base_cmd} | cat"
 
         try:
+            print("Running _get_costs_and_usage...")
+            print(f"Command: {cmd}")
             results = subprocess.run(
                 cmd, shell=True, stdout=subprocess.PIPE, check=True
             )
+            print("Run _get_costs_and_usage...")
 
         except subprocess.CalledProcessError:
             log(msg="Error getting data from AWS CLI get-cost-and-usage", tag="AWS CLI")
@@ -66,15 +68,19 @@ def get_aws_costs(
             if not obj:
                 break
 
+            print("Run _get_all_costs...")
             # Process and append results
             charges = _process_results(obj)
             all_charges.extend(charges)
+            print("Run _get_all_costs2...")
 
             # Check for next page
             next_token = obj.get("NextPageToken")
+            print("Run _get_all_costs3...")
             if not next_token:
                 break
 
+            print("Run _get_all_costs4...")
             log(
                 msg=f"Fetching next page of results with token: "
                 f"{next_token[:10]}...",

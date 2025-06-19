@@ -22,17 +22,21 @@ def getBlocks(
         return None
 
     if not dry:
-        right_session = boto3.Session(profile_name=profile)
+        right_session = boto3.Session()
+        print("Getting S3 client...")
         s3 = right_session.client("s3", region_name=regions[0])
+        print("Got S3 client...")
         response = s3.list_buckets()
         known_buckets = {}
         for bucket in response["Buckets"]:
             bucket_name = bucket["Name"]
+            print("Reviewing bucket client..." + bucket_name)
             resp = s3.get_bucket_location(Bucket=bucket_name)
 
             permissions = []
             public = False
             try:
+                print("Trying to get bucket policy status for " + bucket_name)
                 policy_status_resp = s3.get_bucket_policy_status(Bucket=bucket_name)
                 public = policy_status_resp["PolicyStatus"]["IsPublic"]
 
@@ -48,6 +52,7 @@ def getBlocks(
 
             versioning = None
             try:
+                print("Trying to get bucket versioning status for " + bucket_name)
                 versioning_response = s3.get_bucket_versioning(Bucket=bucket_name)
                 if "Status" in versioning_response:
                     versioning = versioning_response["Status"]
@@ -56,13 +61,15 @@ def getBlocks(
                 log(msg=bucket_name, tag="No Bucket Status for bucket")
 
             region = resp["LocationConstraint"]
-            # print(region)
+            region = "eu-west-1" if region == "EU" else region
+            print(region)
             if region:
-                # print('Have region')
+                print('Have region')
                 cloudwatch = right_session.client("cloudwatch", region_name=region)
             else:
                 cloudwatch = right_session.client("cloudwatch", region_name="us-east-1")
 
+            print("Trying to get bucket size for " + bucket_name)
             response = cloudwatch.get_metric_statistics(
                 Namespace="AWS/S3",
                 MetricName="BucketSizeBytes",
@@ -76,6 +83,7 @@ def getBlocks(
                 Statistics=["Average"],
                 Unit="Bytes",
             )
+            print("Trying to get bucket size for " + bucket_name + " done.")
             if response["Datapoints"]:
                 bucket_size_bytes = response["Datapoints"][-1]["Average"]
                 known_buckets[bucket_name] = {
@@ -92,6 +100,7 @@ def getBlocks(
             #     pass
 
         my_buckets = list(known_buckets.values())
+        print("Found buckets: " + str(my_buckets))
         upload = {
             "metadata": {"provider": "aws", "account": str(sub_id)},
             "data": my_buckets,

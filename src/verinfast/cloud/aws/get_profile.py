@@ -1,15 +1,21 @@
 import json
 import subprocess
+import os
 
 
 def find_profile(targeted_account: str, log):
+    print(os.environ.get("AWS_VAULT"))
+    return os.environ.get("AWS_VAULT")
+
     profiles = []
     available_accounts = []
+    print("Listing profiles")
     results = subprocess.run(
         "aws configure list-profiles", shell=True, stdout=subprocess.PIPE
     )
     text = results.stdout.decode()
     for line in text.splitlines():
+        print("Listing profile " + line)
         profiles.append(line)
         cmd = f'aws sts get-caller-identity --profile="{line}" --output=json'
         try:
