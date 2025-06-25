@@ -48,4 +48,7 @@
  Copyright ©2023-2025 Startos Inc.
 
 
-`PYTHONPATH=src ave test-read -- python -m src.verinfast.agent --config ./config.yaml`
+```
+pip install -r requirements.txt
+PYTHONPATH=src ave test-read -- python -m src.verinfast.agent --config ./config.yaml
+```
